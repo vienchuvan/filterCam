@@ -8,7 +8,9 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -28,9 +30,9 @@ public class EditImageActivity extends AppCompatActivity {
 
         imageView = findViewById(R.id.imageView);
         SeekBar seek = findViewById(R.id.seekBrightness);
-        Button btnVintage = findViewById(R.id.btnVintage);
-        Button btnBW = findViewById(R.id.btnBW);
-        Button btnSave = findViewById(R.id.btnSave);
+        LinearLayout btnVintage = findViewById(R.id.btnVintage);
+        LinearLayout btnBW = findViewById(R.id.btnBW);
+        TextView btnSave = findViewById(R.id.btnSave);
 
         try {
             Uri uri = Uri.parse(getIntent().getStringExtra("image"));

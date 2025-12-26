@@ -1,0 +1,17 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Nền trong suốt -->
+    <path
+        android:fillColor="#00FFFFFF"
+        android:pathData="M0,0h100v100h-100z"/>
+
+    <!-- Chấm đỏ quay -->
+    <path
+        android:fillColor="#FFFF2D2D"
+        android:pathData="M50,18
+                          A32,32 0 1,1 49.9,18 Z"/>
+</vector>

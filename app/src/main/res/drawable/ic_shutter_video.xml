@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Vòng tròn ngoài -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M50,2
+                          A48,48 0 1,1 49.9,2 Z"/>
+
+    <!-- Vòng tròn trong -->
+    <path
+        android:fillColor="#FFDD2C2C"
+        android:pathData="M50,25
+                          A25,25 0 1,1 49.9,25 Z"/>
+</vector>
