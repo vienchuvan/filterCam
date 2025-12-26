@@ -3,10 +3,18 @@ package com.vstudio.filtercamera;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicConvolve3x3;
+
+import java.util.Random;
 
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageBrightnessFilter;
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageColorBalanceFilter;
@@ -345,6 +353,141 @@ public class FilterUtils {
     }
 
 
+
+//    public static Bitmap brightness(Bitmap src, float value) {
+//        return applyColorMatrix(src, new float[]{
+//                1,0,0,0,value,
+//                0,1,0,0,value,
+//                0,0,1,0,value,
+//                0,0,0,1,0
+//        });
+//    }
+
+    public static Bitmap contrast(Bitmap src, float c) {
+        float scale = c + 1;
+        float t = (-0.5f * scale + 0.5f) * 255;
+        return applyColorMatrix(src, new float[]{
+                scale,0,0,0,t,
+                0,scale,0,0,t,
+                0,0,scale,0,t,
+                0,0,0,1,0
+        });
+    }
+
+    public static Bitmap saturation(Bitmap src, float value) {
+        Bitmap bmp = src.copy(Bitmap.Config.ARGB_8888, true);
+        Canvas canvas = new Canvas(bmp);
+        Paint paint = new Paint();
+        ColorMatrix cm = new ColorMatrix();
+        cm.setSaturation(value);
+        paint.setColorFilter(new ColorMatrixColorFilter(cm));
+        canvas.drawBitmap(bmp, 0, 0, paint);
+        return bmp;
+    }
+
+    public static Bitmap temperature(Bitmap src, float value) {
+        return applyColorMatrix(src, new float[]{
+                1 + value/100,0,0,0,0,
+                0,1,0,0,0,
+                0,0,1 - value/100,0,0,
+                0,0,0,1,0
+        });
+    }
+
+    public static Bitmap fade(Bitmap src, float value) {
+        return applyColorMatrix(src, new float[]{
+                1,value,value,0,0,
+                value,1,value,0,0,
+                value,value,1,0,0,
+                0,0,0,1,0
+        });
+    }
+
+    public static Bitmap sharpness(Bitmap src, float amount) {
+        float[] k = {
+                0,-1,0,
+                -1,5+amount,-1,
+                0,-1,0
+        };
+        return applyKernel(src, k);
+    }
+
+    public static Bitmap blur(Bitmap src, int radius) {
+        Bitmap bmp = src.copy(Bitmap.Config.ARGB_8888, true);
+        Paint paint = new Paint();
+        paint.setMaskFilter(new BlurMaskFilter(radius / 2f, BlurMaskFilter.Blur.NORMAL));
+        Canvas canvas = new Canvas(bmp);
+        canvas.drawBitmap(bmp, 0, 0, paint);
+        return bmp;
+    }
+
+    public static Bitmap grain(Bitmap src, int strength) {
+        Bitmap bmp = src.copy(Bitmap.Config.ARGB_8888, true);
+        Random r = new Random();
+        for (int x = 0; x < bmp.getWidth(); x++) {
+            for (int y = 0; y < bmp.getHeight(); y++) {
+                int p = bmp.getPixel(x, y);
+                int g = r.nextInt(strength + 1) - strength / 2;
+                bmp.setPixel(x, y, Color.argb(
+                        Color.alpha(p),
+                        clamp(Color.red(p) + g),
+                        clamp(Color.green(p) + g),
+                        clamp(Color.blue(p) + g)
+                ));
+            }
+        }
+        return bmp;
+    }
+
+    private static Bitmap applyColorMatrix(Bitmap src, float[] matrix) {
+        Bitmap bmp = src.copy(Bitmap.Config.ARGB_8888, true);
+        Canvas canvas = new Canvas(bmp);
+        Paint paint = new Paint();
+        paint.setColorFilter(new ColorMatrixColorFilter(new ColorMatrix(matrix)));
+        canvas.drawBitmap(bmp, 0, 0, paint);
+        return bmp;
+    }
+
+    private static Bitmap applyKernel(Bitmap src, float[] kernel) {
+
+        Bitmap bmp = Bitmap.createBitmap(
+                src.getWidth(),
+                src.getHeight(),
+                Bitmap.Config.ARGB_8888
+        );
+
+        int w = src.getWidth();
+        int h = src.getHeight();
+
+        for (int x = 1; x < w - 1; x++) {
+            for (int y = 1; y < h - 1; y++) {
+
+                float r = 0, g = 0, b = 0;
+                int idx = 0;
+
+                for (int i = -1; i <= 1; i++) {
+                    for (int j = -1; j <= 1; j++) {
+                        int pixel = src.getPixel(x + i, y + j);
+                        r += Color.red(pixel) * kernel[idx];
+                        g += Color.green(pixel) * kernel[idx];
+                        b += Color.blue(pixel) * kernel[idx];
+                        idx++;
+                    }
+                }
+
+                int nr = clamp((int) r);
+                int ng = clamp((int) g);
+                int nb = clamp((int) b);
+
+                bmp.setPixel(x, y, Color.argb(255, nr, ng, nb));
+            }
+        }
+        return bmp;
+    }
+
+    private static int clamp(int v) {
+        return Math.max(0, Math.min(255, v));
+    }
 
 
     public static int calculateInSampleSize(
